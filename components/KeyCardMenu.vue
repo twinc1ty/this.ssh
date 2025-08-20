@@ -12,7 +12,7 @@
 </template>
 
 <script setup lang="ts">
-import type { TriggerKeyMenuAnimationIndex } from "~/types/  core-types";
+import type { TriggerKeyMenuAnimationIndex } from "~/types/core-types";
 
 defineProps<{
   publicKey: string;

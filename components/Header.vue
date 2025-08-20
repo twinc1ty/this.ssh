@@ -11,7 +11,10 @@
     </div>
     <div class="header-container mt-[6px]">
       <!-- Status Strip -->
-      <p class="text-2xl font-bold theme-heading-regular header-headline">
+      <p
+        class="text-2xl font-bold theme-heading-regular header-headline"
+        @click="toggleDebugMode"
+      >
         <i>this</i>.ssh
       </p>
       <div class="sub-heading flex justify-center items-center">
@@ -27,6 +30,17 @@
 defineProps<{
   isSshAgentRunning: boolean;
 }>();
+
+interface Emits {
+  (e: "toggleDebugMode"): boolean;
+}
+
+const emit = defineEmits<Emits>();
+const isDebugMode = ref<boolean>(false);
+
+const toggleDebugMode = () => {
+  emit("toggleDebugMode");
+};
 </script>
 
 <style scoped>

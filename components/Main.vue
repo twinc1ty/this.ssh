@@ -1,9 +1,12 @@
 <template>
   <div class="root-container">
-    <Header :is-ssh-agent-running="isSSHAgentRunning" />
-    <div class="main-container max-h-screen">
+    <Header
+      :is-ssh-agent-running="isSSHAgentRunning"
+      @toggle-debug-mode="toggleDebugMode"
+    />
+    <div class="main-container">
       <!-- <h1 class="text-xl font-bold mb-4">SSH Keys</h1> -->
-      <Keys ref="keysComponent" />
+      <Keys ref="keysComponent" :is-debug-mode="isDebugMode" />
     </div>
 
     <!-- Floating Action Button -->
@@ -16,6 +19,12 @@ import { invoke } from "@tauri-apps/api/core";
 import Header from "./Header.vue";
 import Keys from "./Keys.vue";
 import FloatingActionButton from "./FloatingActionButton.vue";
+
+const isDebugMode = ref<boolean>(false);
+
+const toggleDebugMode = () => {
+  isDebugMode.value = !isDebugMode.value;
+};
 
 const isSSHAgentRunning = ref<boolean>(false);
 const keysComponent = ref<InstanceType<typeof Keys> | null>(null);
@@ -34,5 +43,4 @@ const handleKeyCreated = () => {
 </script>
 
 <styles scoped>
-
 </styles>

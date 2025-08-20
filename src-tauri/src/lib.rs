@@ -28,10 +28,15 @@ fn is_ssh_agent_running() -> bool {
 use std::fs;
 use std::process::Command;
 
-
+// Add this struct to hold both filename and key info
+#[derive(serde::Serialize)]
+struct SSHKeyInfo {
+    filename: String,
+    key_info: String,
+}
 
 #[tauri::command]
-fn get_ssh_keys() -> Result<Vec<String>, String> {
+fn get_ssh_keys() -> Result<Vec<SSHKeyInfo>, String> {
     println!("Invoked list_ssh_keys method");
     let ssh_dir = dirs::home_dir()
         .map(|mut p| {
@@ -39,17 +44,28 @@ fn get_ssh_keys() -> Result<Vec<String>, String> {
             p
         })
         .ok_or("Could not find home directory")?;
-    println!("Post ssh dir: {:?}", ssh_dir);
+    println!("SSH directory: {:?}", ssh_dir);
 
     let entries = fs::read_dir(&ssh_dir)
         .map_err(|_| format!("Could not read directory: {:?}", ssh_dir))?;
 
     let mut key_outputs = Vec::new();
+    let mut found_files = Vec::new();
 
     for entry in entries {
         if let Ok(entry) = entry {
             let path = entry.path();
+            println!("Checking file: {:?}", path);
             if path.extension().and_then(|s| s.to_str()) == Some("pub") {
+                println!("Found public key file: {:?}", path);
+                found_files.push(path.clone());
+                
+                // Extract the filename without extension for the private key
+                let filename = path.file_stem()
+                    .and_then(|s| s.to_str())
+                    .unwrap_or("unknown")
+                    .to_string();
+                
                 let output = Command::new("ssh-keygen")
                     .arg("-lv")
                     .arg("-f")
@@ -59,21 +75,34 @@ fn get_ssh_keys() -> Result<Vec<String>, String> {
                     Ok(out) => {
                         if out.status.success() {
                             let result = String::from_utf8_lossy(&out.stdout).to_string();
-                            key_outputs.push(result);
+                            println!("SSH key info: {}", result);
+                            key_outputs.push(SSHKeyInfo {
+                                filename,
+                                key_info: result,
+                            });
                         } else {
                             let err = String::from_utf8_lossy(&out.stderr).to_string();
-                            key_outputs.push(format!("Error for {}: {}", path.display(), err));
+                            println!("Error getting SSH key info: {}", err);
+                            key_outputs.push(SSHKeyInfo {
+                                filename,
+                                key_info: format!("Error for {}: {}", path.display(), err),
+                            });
                         }
                     }
                     Err(e) => {
-                        key_outputs.push(format!("Failed to run ssh-keygen for {}: {}", path.display(), e));
+                        println!("Failed to run ssh-keygen: {}", e);
+                        key_outputs.push(SSHKeyInfo {
+                            filename,
+                            key_info: format!("Failed to run ssh-keygen for {}: {}", path.display(), e),
+                        });
                     }
                 }
             }
         }
     }
 
-    println!("Post pub_keys: {:?}", key_outputs);
+    println!("Found {} public key files: {:?}", found_files.len(), found_files);
+    // println!("Generated {} key outputs: {:?}", key_outputs.len(), key_outputs);
 
     Ok(key_outputs)
 }
@@ -135,6 +164,40 @@ fn create_ssh_key(email: String, key_type: String, key_size: u32, passphrase: Op
     }
 }
 
+#[tauri::command]
+fn remove_ssh_key(key_filename: String) -> Result<String, String> {
+    let ssh_dir = dirs::home_dir()
+        .map(|mut p| {
+            p.push(".ssh");
+            p
+        })
+        .ok_or("Could not find home directory")?;
+
+    // Construct paths for both private and public key files
+    let private_key_path = ssh_dir.join(&key_filename);
+    let public_key_path = ssh_dir.join(format!("{}.pub", key_filename));
+
+    // Check if the private key exists
+    if !private_key_path.exists() {
+        return Err(format!("SSH key '{}' not found", key_filename));
+    }
+
+    // Remove private key file
+    if let Err(e) = fs::remove_file(&private_key_path) {
+        return Err(format!("Failed to remove private key '{}': {}", key_filename, e));
+    }
+
+    // Remove public key file if it exists
+    if public_key_path.exists() {
+        if let Err(e) = fs::remove_file(&public_key_path) {
+            // Log warning but don't fail the operation
+            println!("Warning: Failed to remove public key '{}.pub': {}", key_filename, e);
+        }
+    }
+
+    Ok(format!("SSH key '{}' removed successfully", key_filename))
+}
+
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -149,7 +212,7 @@ pub fn run() {
       }
       Ok(())
     })
-    .invoke_handler(tauri::generate_handler![get_ssh_keys, is_ssh_agent_running, get_loaded_ssh_agent_keys, create_ssh_key])
+    .invoke_handler(tauri::generate_handler![get_ssh_keys, is_ssh_agent_running, get_loaded_ssh_agent_keys, create_ssh_key, remove_ssh_key])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }

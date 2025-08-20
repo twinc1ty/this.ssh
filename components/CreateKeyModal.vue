@@ -1,7 +1,7 @@
 <template>
   <div
     v-if="isOpen"
-    class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
+    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
   >
     <div class="modal-container">
       <div class="modal-header">

@@ -1,6 +1,5 @@
 <template>
   <div class="fab-container">
-    <!-- Main FAB Button -->
     <button
       @click="toggleFab"
       class="fab-main"
@@ -80,7 +79,7 @@ interface Emits {
 
 const emit = defineEmits<Emits>();
 
-const isExpanded = ref(true);
+const isExpanded = ref(false);
 const isCreateKeyModalOpen = ref(false);
 
 const toggleFab = () => {

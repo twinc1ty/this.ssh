@@ -29,9 +29,10 @@
 }
 
 .root-container {
-  min-height: 100vh;
+  height: 100vh;
   background-color: var(--primary-bg);
   overflow-y: hidden;
+  overflow-x: scroll;
 }
 
 p {

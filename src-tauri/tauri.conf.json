@@ -13,8 +13,8 @@
     "windows": [
       {
         "title": "this.ssh",
-        "width": 400,
-        "height": 600,
+        "width": 450,
+        "height": 650,
         "resizable": true,
         "fullscreen": false
       }

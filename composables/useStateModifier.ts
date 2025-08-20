@@ -1,4 +1,4 @@
-import type { State, Status } from "~/types/  core-types";
+import type { State, Status } from "~/types/core-types";
 
 export const useStateModifier = (
   state: State, 
