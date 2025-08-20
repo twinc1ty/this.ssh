@@ -1,10 +1,10 @@
 [package]
-name = "app"
-version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
-license = ""
-repository = ""
+name = "this-dot-ssh"
+version = "1.0.0"
+description = "SSH Management Made Simple"
+authors = ["dk3tm"]
+license = "Apache 2.0"
+repository = "https://github.com/dh00mk3tu/this.ssh"
 edition = "2021"
 rust-version = "1.77.2"
 
