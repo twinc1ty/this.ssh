@@ -168,7 +168,7 @@ const createKey = async () => {
     const result = await invoke<string>("create_ssh_key", {
       email: form.value.email.trim(),
       keyType: form.value.keyType,
-      keySize: form.value.keySize,
+      keySize: parseInt(form.value.keySize),
       passphrase: form.value.passphrase.trim() || null,
     });
 
