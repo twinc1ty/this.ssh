@@ -136,7 +136,7 @@ const form = ref({
 });
 
 const isCreating = ref(false);
-const message = ref("");
+const message = ref<string>("");
 const messageType = ref<"success" | "error">("success");
 
 const closeModal = () => {
@@ -163,7 +163,6 @@ const createKey = async () => {
 
   isCreating.value = true;
   message.value = "";
-
   try {
     const result = await invoke<string>("create_ssh_key", {
       email: form.value.email.trim(),
