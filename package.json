@@ -7,15 +7,23 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "tauri": "tauri",
+    "tauri:build": "tauri build",
+    "tauri:build:linux": "tauri build --target x86_64-unknown-linux-gnu",
+    "tauri:build:mac": "tauri build --target x86_64-apple-darwin",
+    "tauri:build:mac-arm64": "tauri build --target aarch64-apple-darwin",
+    "tauri:build:mac-universal": "tauri build --target universal-apple-darwin",
+    "tauri:dev": "tauri dev",
+    "tauri:generate": "nuxt generate && tauri build"
   },
   "dependencies": {
     "nuxt": "^3.17.6",
     "vue": "^3.5.17",
-    "vue-router": "^4.5.1"
+    "vue-router": "^4.5.1",
+    "@tauri-apps/api": "^2.6.0"
   },
   "devDependencies": {
-    "@tauri-apps/api": "^2.6.0",
     "@tauri-apps/cli": "^2.6.2",
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.47",
