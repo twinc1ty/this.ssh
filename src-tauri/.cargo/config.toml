@@ -1,0 +1,14 @@
+[target.x86_64-apple-darwin]
+linker = "x86_64-apple-darwin-clang"
+
+[target.aarch64-apple-darwin]
+linker = "aarch64-apple-darwin-clang"
+
+[build]
+target = "x86_64-apple-darwin"
+
+[env]
+CC_x86_64_apple_darwin = "x86_64-apple-darwin-clang"
+CXX_x86_64_apple_darwin = "x86_64-apple-darwin-clang++"
+CC_aarch64_apple_darwin = "aarch64-apple-darwin-clang"
+CXX_aarch64_apple_darwin = "aarch64-apple-darwin-clang++"
