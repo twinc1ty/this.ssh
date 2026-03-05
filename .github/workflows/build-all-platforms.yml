@@ -5,6 +5,9 @@ on:
     branches: [master]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build-tauri:
     strategy:
@@ -13,12 +16,16 @@ jobs:
         include:
           - platform: "ubuntu-22.04"
             args: ""
+            artifact_pattern: "src-tauri/target/release/bundle/**/*.{deb,AppImage,rpm}"
           - platform: "macos-latest"
             args: "--target aarch64-apple-darwin"
+            artifact_pattern: "src-tauri/target/aarch64-apple-darwin/release/bundle/**/*.dmg"
           - platform: "macos-latest"
             args: "--target x86_64-apple-darwin"
+            artifact_pattern: "src-tauri/target/x86_64-apple-darwin/release/bundle/**/*.dmg"
           - platform: "windows-latest"
             args: ""
+            artifact_pattern: "src-tauri/target/release/bundle/**/*.{msi,exe}"
 
     runs-on: ${{ matrix.platform }}
 
@@ -45,18 +52,61 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
-      - name: Build frontend
-        run: npm run generate
-
       - name: Build Tauri app
-        uses: tauri-apps/tauri-action@v0.6
+        run: npx tauri build ${{ matrix.args }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.platform }}-${{ strategy.job-index }}
+          path: |
+            src-tauri/target/**/release/bundle/**/*.deb
+            src-tauri/target/**/release/bundle/**/*.AppImage
+            src-tauri/target/**/release/bundle/**/*.rpm
+            src-tauri/target/**/release/bundle/**/*.dmg
+            src-tauri/target/**/release/bundle/**/*.msi
+            src-tauri/target/**/release/bundle/**/*.exe
+            src-tauri/target/release/bundle/**/*.deb
+            src-tauri/target/release/bundle/**/*.AppImage
+            src-tauri/target/release/bundle/**/*.rpm
+            src-tauri/target/release/bundle/**/*.msi
+            src-tauri/target/release/bundle/**/*.exe
+          if-no-files-found: warn
+
+  release:
+    needs: build-tauri
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get version from tauri.conf.json
+        id: version
+        run: echo "version=$(jq -r .version src-tauri/tauri.conf.json)" >> $GITHUB_OUTPUT
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: List artifacts
+        run: find artifacts -type f | head -50
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: "this.ssh v${{ steps.version.outputs.version }}"
+          body: "See the assets to download this version and install."
+          draft: false
+          prerelease: false
+          files: |
+            artifacts/**/*.deb
+            artifacts/**/*.AppImage
+            artifacts/**/*.rpm
+            artifacts/**/*.dmg
+            artifacts/**/*.msi
+            artifacts/**/*.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tagName: v__VERSION__
-          releaseName: "this.ssh v__VERSION__"
-          releaseBody: "See the assets to download this version and install."
-          releaseDraft: false
-          prerelease: false
-          tauriScript: npx tauri
-          args: ${{ matrix.args }}
