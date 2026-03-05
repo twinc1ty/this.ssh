@@ -1,0 +1,57 @@
+name: Update README with releases
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch: # allows manual run (for first-time setup)
+
+permissions:
+  contents: write
+
+jobs:
+  update-readme:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Get all releases
+        id: releases
+        run: |
+          releases=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases \
+            | jq -r '.[] | "| " + .tag_name + " | " + .published_at[0:10] + " | [View Release](" + .html_url + ") |"' )
+          echo "releases<<EOF" >> $GITHUB_ENV
+          echo "$releases" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Update README
+        run: |
+          # Build the markdown table with header
+          table="| Version | Date | Link |\n| ------- | ---- | ---- |\n$releases"
+
+          awk -v repl="$table" '
+            /<!--RELEASES-LIST-->/ {
+              print "<!--RELEASES-LIST-->"
+              print repl
+              next
+            }
+            /<!--RELEASES-LIST-END-->/ {
+              print "<!--RELEASES-LIST-END-->"
+              next
+            }
+            {print}
+          ' README.md > README.new
+
+          mv README.new README.md
+
+      - name: Commit changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          if git commit -m "chore: update README with releases"; then
+            git push
+          else
+            echo "No changes to commit"
+          fi

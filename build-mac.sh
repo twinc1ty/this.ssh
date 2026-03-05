@@ -30,6 +30,12 @@ npm install
 echo "🔨 Building Nuxt.js frontend..."
 npm run generate
 
+# Clean Rust build cache to avoid objc2-exception-helper issues
+echo "🧹 Cleaning Rust build cache..."
+cd src-tauri
+cargo clean
+cd ..
+
 # Check if dist directory exists and contains index.html
 if [ ! -f "dist/index.html" ]; then
     echo "❌ Error: dist/index.html not found. Frontend build failed."
