@@ -2,13 +2,13 @@ name: Development Build
 
 on:
   push:
-    branches: [main, develop]
+    branches: [develop]
   pull_request:
     branches: [main]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout code
@@ -22,8 +22,6 @@ jobs:
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt, clippy
 
       - name: Install system dependencies
         run: |
@@ -38,4 +36,3 @@ jobs:
 
       - name: Build Tauri app (debug)
         run: npm run tauri:build:linux
-
