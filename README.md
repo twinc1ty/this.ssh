@@ -10,8 +10,8 @@
 
 | Version | Date | Link |
 |:-------------|:------------------|:------|
-| release-v1.0.0 | 2025-08-20 | [View Release](https://github.com/dh00mk3tu/this.ssh/releases/tag/release-v1.0.0) |
-| release-v1.1.0 | 2026-03-09 | [View Release](https://github.com/dh00mk3tu/this.ssh/releases/tag/release-v1.1.0) |
+| release-v1.0.0 | 2025-08-20 | [View Release](https://github.com/twinc1ty/this.ssh/releases/tag/release-v1.0.0) |
+| release-v1.1.0 | 2026-03-09 | [View Release](https://github.com/twinc1ty/this.ssh/releases/tag/v1.1.0) |
 
 <!--RELEASES-LIST-END-->
 
