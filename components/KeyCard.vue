@@ -1,6 +1,6 @@
 <template>
   <div
-    class="key-card border p-4 m-2 flex flex-col h-40 rounded shadow-md text-sm overflow-hidden break-words"
+    class="key-card border p-4 m-2 flex flex-col rounded shadow-md text-sm overflow-hidden break-words"
   >
     <div class="flex justify-start items-center w-full">
       <p class="text-xm font-thin">Status:</p>
@@ -16,6 +16,12 @@
         <span class="key-pid text-xm">{{ keyDetails.email }}</span>
       </div>
     </div>
+    <KeyHosts
+      :hosts="keyDetails.assignedHosts"
+      :key-filename="keyDetails.filename"
+      @host-assigned="$emit('hosts-changed')"
+      @host-removed="$emit('hosts-changed')"
+    />
     <key-card-menu
       class="mt-2"
       :public-key="keyDetails.publicKey"
@@ -36,6 +42,7 @@
 <script setup lang="ts">
 import type { Key } from "../types/core-types";
 import RemoveKeyConfirmationModal from "./RemoveKeyConfirmationModal.vue";
+import KeyHosts from "./KeyHosts.vue";
 
 interface Props {
   keyDetails: Key;
@@ -44,6 +51,7 @@ interface Props {
 
 interface Emits {
   (e: "key-removed"): void;
+  (e: "hosts-changed"): void;
 }
 
 const props = defineProps<Props>();
