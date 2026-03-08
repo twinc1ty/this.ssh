@@ -23,5 +23,14 @@ export interface Key {
     email: string,
     isActive: boolean,
     keyType: string,
-    filename: string, // Add filename for key removal
+    filename: string,
+    assignedHosts: HostEntry[],
+}
+
+export interface HostEntry {
+    host: string,
+    hostname: string | null,
+    user: string | null,
+    identity_file: string | null,
+    identities_only: boolean,
 }

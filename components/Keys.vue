@@ -22,6 +22,7 @@
             :key-details="key"
             :is-active="isThisKeyActive(key)"
             @key-removed="handleKeyRemoved"
+            @hosts-changed="handleHostsChanged"
           />
         </li>
       </ul>
@@ -50,10 +51,11 @@
 
 <script setup lang="ts">
 import { invoke } from "@tauri-apps/api/core";
-import type { Key, State, SSHKeyInfo } from "~/types/core-types";
+import type { Key, State, SSHKeyInfo, HostEntry } from "~/types/core-types";
 
 const keys = ref<Key[]>([]);
 const loadedKeys = ref<Key[]>([]);
+const hostEntries = ref<HostEntry[]>([]);
 const error = ref<string | null>(null);
 const commandList = <string[]>["get_ssh_keys", "get_loaded_ssh_agent_keys"];
 
@@ -78,10 +80,11 @@ const loadedKeysState = ref<State>({
 onMounted(() => {
   fetchSSHKeys();
   getLoadedSSHAgentKeys();
+  fetchHostConfig();
 });
 
 const isThisKeyActive = (key: Key): boolean => {
-  return loadedKeys.value.some((loadedKey) => loadedKey.keyPid === key.keyPid);
+  return loadedKeys.value.some((loadedKey) => loadedKey.publicKey === key.publicKey);
 };
 
 const formatKeys = (keys: SSHKeyInfo[]): any[] => {
@@ -98,6 +101,7 @@ const formatKeys = (keys: SSHKeyInfo[]): any[] => {
         isActive,
         keyType: "error",
         filename: key.filename,
+        assignedHosts: [],
       };
     }
 
@@ -116,6 +120,7 @@ const formatKeys = (keys: SSHKeyInfo[]): any[] => {
         isActive,
         keyType: "unknown",
         filename: key.filename,
+        assignedHosts: [],
       };
     }
 
@@ -141,6 +146,7 @@ const formatKeys = (keys: SSHKeyInfo[]): any[] => {
       isActive,
       keyType,
       filename: key.filename,
+      assignedHosts: getHostsForKey(key.filename),
     };
     return result;
   });
@@ -194,6 +200,33 @@ const formatLoadedKeys = (keys: string[]): any[] => {
     };
     return result;
   });
+};
+
+const getHostsForKey = (filename: string): HostEntry[] => {
+  return hostEntries.value
+    .filter((entry) => {
+      if (!entry.identity_file) return false;
+      // Match ~/.ssh/filename or /full/path/filename against the key filename
+      const configFilename = entry.identity_file.split("/").pop() || "";
+      return configFilename === filename;
+    });
+};
+
+const fetchHostConfig = async () => {
+  try {
+    hostEntries.value = await invoke<HostEntry[]>("get_ssh_config_hosts");
+    // Re-compute assignedHosts on existing keys
+    keys.value = keys.value.map((key) => ({
+      ...key,
+      assignedHosts: getHostsForKey(key.filename),
+    }));
+  } catch (err: any) {
+    console.error("Error fetching SSH config:", err);
+  }
+};
+
+const handleHostsChanged = () => {
+  fetchHostConfig();
 };
 
 const fetchSSHKeys = async () => {
@@ -293,5 +326,6 @@ const handleKeyRemoved = () => {
 defineExpose({
   fetchSSHKeys,
   getLoadedSSHAgentKeys,
+  fetchHostConfig,
 });
 </script>
